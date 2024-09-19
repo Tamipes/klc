@@ -17,7 +17,7 @@
         version = "0.0.1";
         src = ./.;
 
-        buildPhase = "gcc main.c -W -Wall -Wextra -pedantic -lX11";
+        buildPhase = "gcc main.c -W -Wall -Wextra -pedantic -lX11 -lxkbfile";
         installPhase = ''
           mkdir -p $out/bin
           find $TMP -type d -maxdepth 1 | grep source | xargs -I{} cp {}/a.out $out/bin/${pname}
@@ -25,7 +25,6 @@
 
         buildInputs = [
           xorg.libX11
-          # xorg.libX11
           # xorg.libX11.dev
           # xorg.libXrandr
           # xorg.libXinerama
@@ -33,14 +32,12 @@
           # xorg.libXi
           # xorg.libXext
 
-          # xorg.libxkbfile
+          xorg.libxkbfile
           # xorg.xkbutils
           # xorg.xkbevd
           # xorg.xkbcomp
+          # libxkbcommon
         ];
-        # propagatedBuildInputs = [
-        #   libGL
-        # ];
       }
       );
     in
