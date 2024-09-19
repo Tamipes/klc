@@ -25,14 +25,18 @@
 #include <X11/XKBlib.h>
 #include <X11/extensions/XKBrules.h>
 
+void print_lang();
+
+XEvent e;
+Display *d;
+
+XkbRF_VarDefsRec vd;
+XkbStateRec state;
+
 int main(int argc, char **argv)
 {
-    char lang_codes[2][3] ={"hu","en"}; 
-    XEvent e;
-    Display *d;
-
     if (!(d = XOpenDisplay(NULL))) {
-        fprintf(stderr, "cannot open display\n");
+        printf("cannot open display\n");
         return 1;
     }
 
@@ -42,10 +46,9 @@ int main(int argc, char **argv)
     XkbQueryExtension(d, 0, &xkbEventType, 0, 0, 0);
     XkbSelectEvents(d, XkbUseCoreKbd, XkbAllEventsMask, XkbAllEventsMask);
 
-    XkbRF_VarDefsRec vd;
-    XkbStateRec state;
-
     XSync(d, False);
+
+    print_lang();
 
     int previ = -1;
     while (1) {
@@ -53,32 +56,35 @@ int main(int argc, char **argv)
         if (e.type == xkbEventType) {
             XkbEvent* xkbEvent = (XkbEvent*) &e;
             if (xkbEvent->any.xkb_type == XkbStateNotify) {
+                // Handling the layout change event
                 int lang = xkbEvent->state.group;
                 if(previ == lang)
                     continue;
                 previ = lang;
-                // Handling the layout change event
-                XkbGetState(d, XkbUseCoreKbd, &state);
-                XkbRF_GetNamesProp(d, NULL, &vd);
-
-                char *tok = strtok(vd.layout, ",");
-
-                for (int i = 0; i < state.group; i++) {
-                    tok = strtok(NULL, ",");
-                    if (tok == NULL) {
-                        printf("ERROR:\tTami; should not happen???");
-                        return 1;
-                    }
-                }
-                printf("%s\n", tok);
+                print_lang();
             }
         }
     }
 
-     XCloseDisplay(d);
+    XCloseDisplay(d);
     return(0);
 }
 
+void print_lang(){
+    XkbGetState(d, XkbUseCoreKbd, &state);
+    XkbRF_GetNamesProp(d, NULL, &vd);
+
+    char *tok = strtok(vd.layout, ",");
+
+    for (int i = 0; i < state.group; i++) {
+        tok = strtok(NULL, ",");
+        if (tok == NULL) {
+            printf("ERROR:\tTami; should not happen???\n");
+            return 1;
+        }
+    }
+    fprintf(stdout,"%s\n", tok);
+}
 /*
 //Source: https://gist.github.com/fikovnik/ef428e82a26774280c4fdf8f96ce8eeb
 // compile with `gcc -I/usr/include getxkblayout.c -lX11 -lxkbfile`
