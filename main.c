@@ -25,7 +25,7 @@
 #include <X11/XKBlib.h>
 #include <X11/extensions/XKBrules.h>
 
-void print_lang();
+int print_lang();
 
 XEvent e;
 Display *d;
@@ -48,7 +48,8 @@ int main(int argc, char **argv)
 
     XSync(d, False);
 
-    print_lang();
+    if (!print_lang())
+        return 1;
 
     int previ = -1;
     while (1) {
@@ -61,7 +62,8 @@ int main(int argc, char **argv)
                 if(previ == lang)
                     continue;
                 previ = lang;
-                print_lang();
+                if (!print_lang())
+                    return 1;
             }
         }
     }
@@ -70,7 +72,7 @@ int main(int argc, char **argv)
     return(0);
 }
 
-void print_lang(){
+int print_lang(){
     XkbGetState(d, XkbUseCoreKbd, &state);
     XkbRF_GetNamesProp(d, NULL, &vd);
 
@@ -80,10 +82,11 @@ void print_lang(){
         tok = strtok(NULL, ",");
         if (tok == NULL) {
             printf("ERROR:\tTami; should not happen???\n");
-            return 1;
+            return 0;
         }
     }
     fprintf(stdout,"%s\n", tok);
+    return 1;
 }
 /*
 //Source: https://gist.github.com/fikovnik/ef428e82a26774280c4fdf8f96ce8eeb
